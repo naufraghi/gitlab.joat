@@ -1,0 +1,19 @@
+{%- macro debug_print(name, value) -%}
+{% if value is object -%}
+{%- for key, inner_value in value -%}
+{{ self::debug_print(name=name ~ "." ~ key, value=inner_value) }}
+{%- endfor -%}
+{% elif value is iterable -%}
+{%- for inner_value in value -%}
+{{ self::debug_print(name=name ~ "[" ~ loop.index0 ~ "]", value=inner_value) }}
+{%- endfor -%}
+{% else -%}
+{{ name }} = "{{ value }}"
+{% endif -%}
+{%- endmacro debug_print -%}
+
+{%- macro bold(t) -%}
+{%- set bold = '\x1b[7m' -%}
+{%- set end = '\x1b[0m' -%}
+{{ bold }}{{ t }}{{ end }}
+{%- endmacro bold -%}
