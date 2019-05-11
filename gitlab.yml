@@ -69,7 +69,7 @@ subcommands:
                 takes_value: true
         body:
             title: "{{ args.TITLE }}"
-            description: "{%- if args.DESCRIPTION -%}}args.DESCRIPTION{%- endif -%}"
+            description: "{%- if args.DESCRIPTION -%}{{args.DESCRIPTION}}{%- endif -%}"
             labels: "{%- if args.LABELS -%}{{args.LABELS}}{%- endif -%}"
         template: issue.j2
     - edit:
