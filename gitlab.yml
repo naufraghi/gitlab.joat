@@ -33,7 +33,7 @@ subcommands:
                 help: Use a different template
                 required: false
                 takes_value: true
-        template: issue.j2
+        response_template: issue.j2
     - project:
         about: show project data
         path: /projects/{{env.PROJECT_ID}}
@@ -71,7 +71,7 @@ subcommands:
             title: "{{ args.TITLE }}"
             description: "{%- if args.DESCRIPTION -%}{{args.DESCRIPTION}}{%- endif -%}"
             labels: "{%- if args.LABELS -%}{{args.LABELS}}{%- endif -%}"
-        template: issue.j2
+        response_template: issue.j2
     - edit:
         about: edit an issue
         path: /projects/{{env.PROJECT_ID}}/issues/{{args.ISSUE_ID}}
@@ -101,7 +101,7 @@ subcommands:
             title: "{{ args.title }}"
             labels: "{{ args.labels }}"
             state_event: "{%- if args.labels is containing(vars.done_label) -%}close{%- else -%}reopen{%- endif -%}"
-        template: issue.j2
+        response_template: issue.j2
     - boards:
         about: list boards
         path: /projects/{{env.PROJECT_ID}}/boards
