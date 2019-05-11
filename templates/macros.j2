@@ -11,9 +11,3 @@
 {{ name }} = "{{ value }}"
 {% endif -%}
 {%- endmacro debug_print -%}
-
-{%- macro bold(t) -%}
-{%- set bold = '\x1b[7m' -%}
-{%- set end = '\x1b[0m' -%}
-{{ bold }}{{ t }}{{ end }}
-{%- endmacro bold -%}
