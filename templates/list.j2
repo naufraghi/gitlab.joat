@@ -1,0 +1,5 @@
+{% if response is iterable -%}
+{%- for issue in response -%}
+#{{issue.iid}} {{issue.title}}
+{% endfor -%}
+{%- endif -%}

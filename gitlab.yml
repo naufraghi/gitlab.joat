@@ -48,6 +48,13 @@ subcommands:
                 long: param
                 takes_value: true
                 multiple: true
+            - template:
+                short: t
+                long: template
+                help: Use a different template
+                required: false
+                takes_value: true
+        response_template: list.j2
     - newissue:
         about: create an issue
         path: /projects/{{env.PROJECT_ID}}/issues
@@ -153,3 +160,10 @@ subcommands:
                 gitlab edit -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
             fi
             gitlab show {{ args.ISSUE_ID }}
+    - board:
+        about: Print board
+        script: |
+            export READY=$(gitlab issues -p "labels=workflow:Ready for development" -t list_for_board.j2)
+            export PROGRESS=$(gitlab issues -p "labels=workflow:In progress" -t list_for_board.j2)
+            export WIDTH=$(tput cols)
+            python templates/print_board.py
