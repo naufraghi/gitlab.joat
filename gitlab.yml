@@ -21,7 +21,7 @@ args:
 subcommands:
     - show:
         about: show issue data
-        path: /projects/{{env.PROJECT_ID}}/issues/{{args.ISSUE_ID}}
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_ID}}
         args:
             - ISSUE_ID:
                 help: Id of the issue to show
@@ -36,10 +36,13 @@ subcommands:
         response_template: issue.j2
     - project:
         about: show project data
-        path: /projects/{{env.PROJECT_ID}}
+        path: /projects/{{env.GITLAB_PROJECT_ID}}
+    - project_users:
+        about: show project users
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/users
     - issues:
         about: list issues
-        path: /projects/{{env.PROJECT_ID}}/issues
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
         args:
             - param:
                 short: p
@@ -57,7 +60,7 @@ subcommands:
         response_template: list.j2
     - newissue:
         about: create an issue
-        path: /projects/{{env.PROJECT_ID}}/issues
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
         method: POST
         args:
             - TITLE:
@@ -81,7 +84,7 @@ subcommands:
         response_template: issue.j2
     - edit:
         about: edit an issue
-        path: /projects/{{env.PROJECT_ID}}/issues/{{args.ISSUE_ID}}
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_ID}}
         method: PUT
         args:
             - ISSUE_ID:
@@ -103,7 +106,13 @@ subcommands:
                 long: title
                 help: Issue title
                 takes_value: true
+            - assignee:
+                short: a
+                long: assignee
+                help: List of user ids to assign the issue to, 0 unassigns everyone
+                takes_value: true
         body:
+            assignee_ids: "{{ args.assignee }}"
             description: "{{ args.description }}"
             title: "{{ args.title }}"
             labels: "{{ args.labels }}"
@@ -111,7 +120,7 @@ subcommands:
         response_template: issue.j2
     - boards:
         about: list boards
-        path: /projects/{{env.PROJECT_ID}}/boards
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/boards
         args:
             - param:
                 short: p
@@ -140,9 +149,9 @@ subcommands:
         script: |
             LABELS=$(gitlab cleanlabels {{ args.ISSUE_ID }})
             if [ -z "$LABELS" ]; then
-                gitlab edit -l "workflow:In progress" {{ args.ISSUE_ID }}
+                gitlab edit -a {{env.GITLAB_USER_ID}} -l "workflow:In progress" {{ args.ISSUE_ID }}
             else
-                gitlab edit -l "$LABELS,workflow:In progress" {{ args.ISSUE_ID }}
+                gitlab edit -a {{env.GITLAB_USER_ID}} -l "$LABELS,workflow:In progress" {{ args.ISSUE_ID }}
             fi
             gitlab show {{ args.ISSUE_ID }}
     - done:
