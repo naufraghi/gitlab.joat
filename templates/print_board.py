@@ -72,6 +72,8 @@ def get_description(raw_line):
 def get_line(from_list, line_no, icw):
     try:
         raw_line = from_list[line_no]
+        if raw_line == '':
+            return ' ' * icw
         ticket_number = get_ticket_number(raw_line)
         ticket_type = get_ticket_type(raw_line)
         assignee = get_assignee(raw_line)
