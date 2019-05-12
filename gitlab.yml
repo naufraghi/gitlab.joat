@@ -164,9 +164,9 @@ subcommands:
         script: |
             LABELS=$(gitlab cleanlabels {{ args.ISSUE_ID }})
             if [ -z "$LABELS" ]; then
-                gitlab edit -l "{{ vars.done_label }}" {{ args.ISSUE_ID }}
+                gitlab edit -a 0 -l "{{ vars.done_label }}" {{ args.ISSUE_ID }}
             else
-                gitlab edit -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
+                gitlab edit -a 0 -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
             fi
             gitlab show {{ args.ISSUE_ID }}
     - board:
