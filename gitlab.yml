@@ -34,23 +34,26 @@ subcommands:
                 required: false
                 takes_value: true
         response_template: issue.j2
+
     - project:
         about: show project data
         path: /projects/{{env.GITLAB_PROJECT_ID}}
+
     - project_users:
         about: show project users
         path: /projects/{{env.GITLAB_PROJECT_ID}}/users
+
     - issues:
         about: list issues
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
+        query_params:
+            labels: "{% if args.labels is defined%}{{args.labels}}{% endif %}"
         args:
-            - param:
-                short: p
-                long: param
-                help: query params
-                long: param
+            - labels:
+                short: l
+                long: labels
+                help: filter by labels
                 takes_value: true
-                multiple: true
             - template:
                 short: t
                 long: template
@@ -58,6 +61,7 @@ subcommands:
                 required: false
                 takes_value: true
         response_template: list.j2
+
     - newissue:
         about: create an issue
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
@@ -82,6 +86,7 @@ subcommands:
             description: "{%- if args.DESCRIPTION -%}{{args.DESCRIPTION}}{%- endif -%}"
             labels: "{%- if args.LABELS -%}{{args.LABELS}}{%- endif -%}"
         response_template: issue.j2
+
     - edit:
         about: edit an issue
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_ID}}
@@ -118,16 +123,11 @@ subcommands:
             labels: "{{ args.labels }}"
             state_event: "{%- if args.labels is containing(vars.done_label) -%}close{%- else -%}reopen{%- endif -%}"
         response_template: issue.j2
+
     - boards:
         about: list boards
         path: /projects/{{env.GITLAB_PROJECT_ID}}/boards
-        args:
-            - param:
-                short: p
-                help: query params
-                long: param
-                takes_value: true
-                multiple: true
+
     - cleanlabels:
         about: Return the issue's list of labels without workflow labels
         args:
@@ -139,6 +139,7 @@ subcommands:
             LABELS=$(gitlab show {{ args.ISSUE_ID }} | grep Labels: | sed 's/Labels:[ ]\{0,\}//')
             NO_WORKFLOW_LABELS=$(echo $LABELS | sed 's/[ ]\{0,\}workflow:[A-Z a-z]\{1,\}[,]\{0,1\}//g' | sed 's/^[ ]\{1,\}//' | sed 's/[ ]\{0,\}[,]\{0,\}[ ]\{0,\}$//')
             echo $NO_WORKFLOW_LABELS
+
     - code:
         about: Move issue to code in progress column
         args:
@@ -154,6 +155,7 @@ subcommands:
                 gitlab edit -a {{env.GITLAB_USER_ID}} -l "$LABELS,workflow:In progress" {{ args.ISSUE_ID }}
             fi
             gitlab show {{ args.ISSUE_ID }}
+
     - done:
         about: Move ticket to done column
         args:
@@ -169,10 +171,11 @@ subcommands:
                 gitlab edit -a 0 -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
             fi
             gitlab show {{ args.ISSUE_ID }}
+
     - board:
         about: Print board
         script: |
-            export READY=$(gitlab issues -p "labels=workflow:Ready for development" -t list_for_board.j2)
-            export PROGRESS=$(gitlab issues -p "labels=workflow:In progress" -t list_for_board.j2)
+            export READY=$(gitlab issues -l "workflow:Ready for development" -t list_for_board.j2)
+            export PROGRESS=$(gitlab issues -l "workflow:In progress" -t list_for_board.j2)
             export WIDTH=$(tput cols)
-            python templates/print_board.py
+            python /Users/vinicius/.gitlab.joat/templates/print_board.py
