@@ -27,12 +27,6 @@ subcommands:
                 help: Id of the issue to show
                 required: true
                 index: 1
-            - template:
-                short: t
-                long: template
-                help: Use a different template
-                required: false
-                takes_value: true
         response_template: issue.j2
 
     - project:
@@ -53,12 +47,6 @@ subcommands:
                 short: l
                 long: labels
                 help: filter by labels
-                takes_value: true
-            - template:
-                short: t
-                long: template
-                help: Use a different template
-                required: false
                 takes_value: true
         response_template: list.j2
 
@@ -107,7 +95,7 @@ subcommands:
                 help: Issue description
                 takes_value: true
             - title:
-                short: t
+                short: T
                 long: title
                 help: Issue title
                 takes_value: true

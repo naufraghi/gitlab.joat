@@ -108,6 +108,8 @@ def print_headers(icw, separator, total_width):
 def main():
     ready_for_dev = os.getenv('READY').split('\n')
     progress = os.getenv('PROGRESS').split('\n')
+    ready_for_dev.reverse()
+    progress.reverse()
 
     no_rows = max(
         len(ready_for_dev),
