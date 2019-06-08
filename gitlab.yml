@@ -138,9 +138,9 @@ subcommands:
         script: |
             LABELS=$(gitlab cleanlabels {{ args.ISSUE_ID }})
             if [ -z "$LABELS" ]; then
-                gitlab edit -a {{env.GITLAB_USER_ID}} -l "workflow:In progress" {{ args.ISSUE_ID }}
+                gitlab edit -q -a {{env.GITLAB_USER_ID}} -l "workflow:In progress" {{ args.ISSUE_ID }}
             else
-                gitlab edit -a {{env.GITLAB_USER_ID}} -l "$LABELS,workflow:In progress" {{ args.ISSUE_ID }}
+                gitlab edit -q -a {{env.GITLAB_USER_ID}} -l "$LABELS,workflow:In progress" {{ args.ISSUE_ID }}
             fi
             gitlab show {{ args.ISSUE_ID }}
 
@@ -154,11 +154,11 @@ subcommands:
         script: |
             LABELS=$(gitlab cleanlabels {{ args.ISSUE_ID }})
             if [ -z "$LABELS" ]; then
-                gitlab edit -a 0 -l "{{ vars.done_label }}" {{ args.ISSUE_ID }}
+                gitlab edit -q -a 0 -l "{{ vars.done_label }}" {{ args.ISSUE_ID }}
             else
-                gitlab edit -a 0 -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
+                gitlab edit -q -a 0 -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
             fi
-            gitlab show {{ args.ISSUE_ID }}
+            gitlab board
 
     - board:
         about: Print board
