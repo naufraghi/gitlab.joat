@@ -116,6 +116,27 @@ subcommands:
         about: list boards
         path: /projects/{{env.GITLAB_PROJECT_ID}}/boards
 
+# Scripts
+    - new:
+        about: create an issue in the ready for dev column
+        args:
+            - TITLE:
+                help: Issue title
+                required: true
+                index: 1
+            - DESCRIPTION:
+                short: d
+                long: description
+                help: Issue description
+                takes_value: true
+        script: |
+            LABELS="workflow:Ready for development"
+            {% if args.description is defined%}
+                gitlab newissue -l "$LABELS" -d "{{args.description}}" "{{args.TITLE}}"
+            {% else %}
+                gitlab newissue -l "$LABELS" "{{args.TITLE}}"
+            {% endif %}
+        response_template: issue.j2
     - cleanlabels:
         about: Return the issue's list of labels without workflow labels
         args:
