@@ -187,4 +187,4 @@ subcommands:
             export READY=$(gitlab issues -l "workflow:Ready for development" -t list_for_board.j2)
             export PROGRESS=$(gitlab issues -l "workflow:In progress" -t list_for_board.j2)
             export WIDTH=$(tput cols)
-            python /Users/vinicius/.gitlab.joat/templates/print_board.py
+            python {{scmd.scmd_config_base_path}}/templates/print_board.py
