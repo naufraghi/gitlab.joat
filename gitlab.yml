@@ -20,7 +20,7 @@ args:
         help: Sets the level of verbosity
 subcommands:
     - show:
-        about: show issue data
+        about: Show issue data
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_ID}}
         args:
             - ISSUE_ID:
@@ -30,15 +30,15 @@ subcommands:
         response_template: issue.j2
 
     - project:
-        about: show project data
+        about: Show project data
         path: /projects/{{env.GITLAB_PROJECT_ID}}
 
     - project_users:
-        about: show project users
+        about: Show project users
         path: /projects/{{env.GITLAB_PROJECT_ID}}/users
 
     - issues:
-        about: list issues
+        about: List issues
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
         query_params:
             labels: "{% if args.labels is defined%}{{args.labels}}{% endif %}"
@@ -51,7 +51,7 @@ subcommands:
         response_template: list.j2
 
     - newissue:
-        about: create an issue
+        about: Create an issue
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
         method: POST
         args:
@@ -76,7 +76,7 @@ subcommands:
         response_template: issue.j2
 
     - edit:
-        about: edit an issue
+        about: Edit an issue
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_ID}}
         method: PUT
         args:
@@ -113,12 +113,12 @@ subcommands:
         response_template: issue.j2
 
     - boards:
-        about: list boards
+        about: List boards
         path: /projects/{{env.GITLAB_PROJECT_ID}}/boards
 
 # Scripts
     - new:
-        about: create an issue in the ready for dev column
+        about: Create an issue in the ready for dev column
         args:
             - TITLE:
                 help: Issue title
