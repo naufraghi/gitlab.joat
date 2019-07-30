@@ -88,7 +88,7 @@ def get_line(from_list, line_no, icw):
                 description=description,
                 w=description_size)
         return output
-    except IndexError as e:
+    except IndexError:
         return ' ' * icw
 
 

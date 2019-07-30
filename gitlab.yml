@@ -26,7 +26,6 @@ subcommands:
             - ISSUE_ID:
                 help: Id of the issue to show
                 required: true
-                index: 1
         response_template: issue.j2
 
     - project:
@@ -58,7 +57,6 @@ subcommands:
             - TITLE:
                 help: Issue title
                 required: true
-                index: 1
             - DESCRIPTION:
                 short: d
                 long: description
@@ -83,7 +81,6 @@ subcommands:
             - ISSUE_ID:
                 help: Id of the issue to edit
                 required: true
-                index: 1
             - labels:
                 short: l
                 long: labels
@@ -123,7 +120,6 @@ subcommands:
             - TITLE:
                 help: Issue title
                 required: true
-                index: 1
             - DESCRIPTION:
                 short: d
                 long: description
@@ -143,7 +139,6 @@ subcommands:
             - ISSUE_ID:
                 help: Id of the issue
                 required: true
-                index: 1
         script: |
             LABELS=$(gitlab show {{ args.ISSUE_ID }} | grep Labels: | sed 's/Labels:[ ]\{0,\}//')
             NO_WORKFLOW_LABELS=$(echo $LABELS | sed 's/[ ]\{0,\}workflow:[A-Z a-z]\{1,\}[,]\{0,1\}//g' | sed 's/^[ ]\{1,\}//' | sed 's/[ ]\{0,\}[,]\{0,\}[ ]\{0,\}$//')
@@ -155,7 +150,6 @@ subcommands:
             - ISSUE_ID:
                 help: Id of the issue to code
                 required: true
-                index: 1
         script: |
             LABELS=$(gitlab cleanlabels {{ args.ISSUE_ID }})
             if [ -z "$LABELS" ]; then
@@ -171,7 +165,6 @@ subcommands:
             - ISSUE_ID:
                 help: Id of the issue to move
                 required: true
-                index: 1
         script: |
             LABELS=$(gitlab cleanlabels {{ args.ISSUE_ID }})
             if [ -z "$LABELS" ]; then
