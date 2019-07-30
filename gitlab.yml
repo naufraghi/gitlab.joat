@@ -40,12 +40,18 @@ subcommands:
         about: List issues
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
         query_params:
-            labels: "{% if args.labels is defined%}{{args.labels}}{% endif %}"
+            labels: "{{args.labels}}"
+            milestone: "{{args.milestone}}"
         args:
             - labels:
                 short: l
                 long: labels
                 help: filter by labels
+                takes_value: true
+            - milestone:
+                short: m
+                long: milestone
+                help: filter by milestone name
                 takes_value: true
         response_template: list.j2
 
@@ -91,6 +97,11 @@ subcommands:
                 long: description
                 help: Issue description
                 takes_value: true
+            - milestone_id:
+                short: m
+                long: milestone_id
+                help: Milestone ID
+                takes_value: true
             - title:
                 short: T
                 long: title
@@ -106,12 +117,56 @@ subcommands:
             description: "{{ args.description }}"
             title: "{{ args.title }}"
             labels: "{{ args.labels }}"
+            milestone_id: "{{ args.milestone_id }}"
             state_event: "{%- if args.labels is containing(vars.done_label) -%}close{%- else -%}reopen{%- endif -%}"
         response_template: issue.j2
 
     - boards:
         about: List boards
         path: /projects/{{env.GITLAB_PROJECT_ID}}/boards
+
+    - milestones:
+        about: Get project milestones
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/milestones
+
+    - add_milestone:
+        about: Create or edit a milestone (project milestone)
+        path: "/projects/{{env.GITLAB_PROJECT_ID}}/milestones{%- if args.milestone is defined -%}/{{args.milestone}}{%- endif -%}"
+        method: "{%- if args.edit is defined -%}PUT{%- else -%}POST{%- endif -%}"
+        args:
+            - TITLE:
+                help: The milestone title
+                required: true
+            - description:
+                short: d
+                long: description
+                help: Optional description of the milestone
+                takes_value: true
+            - due_date:
+                short: D
+                long: due_date
+                help: Optional due date for the milestone (YYYYMMDD)
+                takes_value: true
+            - start_date:
+                short: s
+                long: start_date
+                help: Optional start date for the milestone (YYYYMMDD)
+                takes_value: true
+            - edit:
+                short: e
+                long: edit
+                help: Set command to edit the milestone (requires milestone id)
+            - milestone:
+                short: m
+                long: milestone
+                help: Milestone id
+                takes_value: true
+        body:
+            title: "{{ args.TITLE }}"
+            description: "{%- if args.description is defined -%}{{ args.description }}{%- endif -%}"
+            due_date: "{{ args.due_date }}"
+            start_date: "{%- if args.start_date is defined -%}{{ args.start_date }}{%- endif -%}"
+            milestone_id: "{%- if args.milestone is defined -%}{{ args.milestone }}{%- endif -%}"
 
 # Scripts
     - new:
@@ -173,6 +228,46 @@ subcommands:
                 gitlab edit -q -a 0 -l "$LABELS,{{ vars.done_label }}" {{ args.ISSUE_ID }}
             fi
             gitlab board
+
+    - milestone_by_name:
+        about: Return milestone id by a substring name
+        args:
+            - MILESTONE_NAME:
+                help: Substring of the milestone name
+                required: true
+            - name:
+                short: n
+                long: name
+                help: Return the milestone title instead of the id
+        script: |
+            {%- if args.name is not defined -%}
+                echo $(gitlab milestones | jq -r 'map(select(.title | test("{{args.MILESTONE_NAME}}";"i")))|.[0].id')
+            {%- else -%}
+                echo $(gitlab milestones | jq -r 'map(select(.title | test("{{args.MILESTONE_NAME}}";"i")))|.[0].title')
+            {%- endif -%}
+
+    - milestone:
+        about: List milestone tickets by the milestone name (substring)
+        args:
+            - MILESTONE_NAME:
+                help: Substring of the milestone name
+                required: true
+        script: |
+            MILESTONE_NAME=$(gitlab milestone_by_name -n "{{args.MILESTONE_NAME}}")
+            gitlab issues -m "$MILESTONE_NAME"
+
+    - add_milestone:
+        about: Add issue to milestone
+        args:
+            - ISSUE_ID:
+                help: Issue to add
+                required: true
+            - MILESTONE_NAME:
+                help: Substring of the milestone name
+                required: true
+        script: |
+            MILESTONE_ID=$(gitlab milestone_by_name "{{args.MILESTONE_NAME}}")
+            gitlab edit -m "$MILESTONE_ID" "{{args.ISSUE_ID}}"
 
     - board:
         about: Print board
