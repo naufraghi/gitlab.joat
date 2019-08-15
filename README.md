@@ -1,6 +1,6 @@
 # Gitlab CLI
 
-Config files for a joat based cli, you don't know what is joat? <scared_face_emoji>
+Config files for a joat based cli, you don't know what is joat? 😱
 get your shit together and go [read about joat!](https://github.com/sennav/joat)
 
 For now this cli is focused in managing tickets, but nothing stops it to expand to other gilab APIs.
