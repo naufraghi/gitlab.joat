@@ -42,6 +42,7 @@ subcommands:
         query_params:
             labels: "{{args.labels}}"
             milestone: "{{args.milestone}}"
+            state: "{{args.state}}"
         args:
             - labels:
                 short: l
@@ -52,6 +53,11 @@ subcommands:
                 short: m
                 long: milestone
                 help: filter by milestone name
+                takes_value: true
+            - state:
+                short: s
+                long: state
+                help: filter by state (use opened and closed as values)
                 takes_value: true
         response_template: list.j2
 
@@ -271,8 +277,15 @@ subcommands:
 
     - board:
         about: Print board
+        args:
+            - board_no:
+                help: board number (default 0)
+                short: b
+                long: board_no
+                takes_value: true
         script: |
-            export READY=$(gitlab issues -l "workflow:Ready for development" -t list_for_board.j2)
-            export PROGRESS=$(gitlab issues -l "workflow:In progress" -t list_for_board.j2)
+            BOARD_INDEX="{%- if board_no is defined -%}board_no{%- else -%}0{%- endif -%}"
+            export LISTS=$(gitlab boards | jq -r ".[${BOARD_INDEX}].lists | map(.label.name)")
+            export ISSUES=$(gitlab issues -R -s opened)
             export WIDTH=$(tput cols)
             python {{scmd.scmd_config_base_path}}/templates/print_board.py
