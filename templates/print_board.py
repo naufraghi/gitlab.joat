@@ -94,7 +94,7 @@ def get_header_row(columns, icw, separator):
     header_row = ''
     for column in columns:
         size = icw + len(BOLD) + len(END)
-        bold_column = get_text_bold(column[:icw])
+        bold_column = get_text_bold(column[:icw].upper())
         sep = separator if column != columns[-1] else ''
         header_row += f"{bold_column:^{size}.{size}}{sep}"
     return header_row
@@ -116,8 +116,9 @@ def main():
     header_row = get_header_row(columns, icw, separator)
     rows = get_rows(issues, columns, icw, separator)
 
+    print('‾' * terminal_width)
     print(header_row)
-    print('-' * terminal_width)
+    print('_' * terminal_width)
 
     for row in rows:
         print(row)
