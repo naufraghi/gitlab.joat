@@ -81,8 +81,8 @@ subcommands:
                 takes_value: true
         body:
             title: "{{ args.TITLE }}"
-            description: "{%- if args.DESCRIPTION -%}{{args.DESCRIPTION}}{%- endif -%}"
-            labels: "{%- if args.LABELS -%}{{args.LABELS}}{%- endif -%}"
+            description: "{%- if args.DESCRIPTION is defined -%}{{args.DESCRIPTION}}{%- endif -%}"
+            labels: "{%- if args.LABELS is defined -%}{{args.LABELS}}{%- endif -%}"
         response_template: issue.j2
 
     - edit:
@@ -181,7 +181,7 @@ subcommands:
             - TITLE:
                 help: Issue title
                 required: true
-            - DESCRIPTION:
+            - description:
                 short: d
                 long: description
                 help: Issue description
