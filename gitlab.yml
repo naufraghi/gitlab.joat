@@ -85,6 +85,15 @@ subcommands:
             labels: "{%- if args.LABELS is defined -%}{{args.LABELS}}{%- endif -%}"
         response_template: issue.j2
 
+    - delete:
+        about: Delete an issue
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_IID}}
+        method: DELETE
+        args:
+            - ISSUE_IID:
+                help: Issue iid
+                required: true
+
     - edit:
         about: Edit an issue
         path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_ID}}
