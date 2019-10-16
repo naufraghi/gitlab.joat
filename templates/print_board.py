@@ -9,6 +9,21 @@ BOLD = '\033[1m'
 RED = '\033[91m'
 BLUE = '\033[36m'
 
+default_label_map = {
+    'Feature': '🚀',
+    'Bug': '🐛',
+    'Tech improvement': '🤖',
+    'Requirement work': '📝',
+    'Improvement': '🎨',
+    'Tech support task': '🔧',
+    'Sub-task': '🍕',
+}
+default_unknown_label_emoji = os.environ.get(
+    'DEFAULT_UNKNOWN_LABEL_EMOJI', '🤔')
+
+env_label_map = os.environ.get('LABEL_MAP', None)
+label_map = json.loads(env_label_map) if env_label_map else default_label_map
+
 
 def get_text_red(text):
     return '{}{}{}'.format(RED, text, END)
@@ -35,22 +50,10 @@ def get_assignee(issue):
 
 def get_issue_type(issue):
     labels = issue['labels']
-
-    if 'Feature' in labels:
-        return '🚀'
-    if 'Bug' in labels:
-        return '🐛'
-    if 'Tech improvement' in labels:
-        return '🤖'
-    if 'Requirement work' in labels:
-        return '📝'
-    if 'Improvement' in labels:
-        return '🎨'
-    if 'Tech support task' in labels:
-        return '🔧'
-    if 'Sub-task' in labels:
-        return '🍕'
-    return '🤔'
+    for (label, emoji) in label_map.items():
+        if label in labels:
+            return emoji
+    return default_unknown_label_emoji
 
 
 def demux_issues(issues, columns):
