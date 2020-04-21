@@ -1,5 +1,5 @@
 name: gitlab-cli
-version: "0.0.1"
+version: "0.0.2"
 author: Vinicius <senna.vmd@gmail.com>
 about: Cli to interface with Gitlab's REST API
 base_endpoint: https://gitlab.com/api/v4
@@ -54,6 +54,16 @@ subcommands:
                 help: filter by milestone name
                 takes_value: true
         response_template: list.j2
+
+    - get_issues_by_id:
+        about: List issues
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues
+        query_params:
+            "iids[]": "{{args.ISSUE_IID}}"
+        args:
+            - ISSUE_IID:
+                help: Issue id
+                takes_value: true
 
     - newissue:
         about: Create an issue
@@ -276,3 +286,13 @@ subcommands:
             export PROGRESS=$(gitlab issues -l "workflow:In progress" -t list_for_board.j2)
             export WIDTH=$(tput cols)
             python {{scmd.scmd_config_base_path}}/templates/print_board.py
+
+    - issue:
+        about: Open issue on Gitlab
+        args:
+            - ISSUE_ID:
+                help: Issue to Open
+                required: true
+        script: |
+            ISSUE_URL=$(gitlab get_issues_by_id {{args.ISSUE_ID}} | jq -r '.[0].web_url')
+            open "$ISSUE_URL"
