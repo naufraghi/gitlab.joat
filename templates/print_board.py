@@ -1,135 +1,130 @@
 #!/usr/bin/python
 
 import os
-import re
 import math
+import json
 
 END = '\033[0m'
 BOLD = '\033[1m'
 RED = '\033[91m'
 BLUE = '\033[36m'
 
+default_label_map = {
+    'Feature': '🚀',
+    'Bug': '🐛',
+    'Tech improvement': '🤖',
+    'Requirement work': '📝',
+    'Improvement': '🎨',
+    'Tech support task': '🔧',
+    'Sub-task': '🍕',
+}
+default_unknown_label_emoji = os.environ.get(
+    'DEFAULT_UNKNOWN_LABEL_EMOJI', '🤔')
 
-def write_red(text):
+env_label_map = os.environ.get('LABEL_MAP', None)
+label_map = json.loads(env_label_map) if env_label_map else default_label_map
+
+
+def get_text_red(text):
     return '{}{}{}'.format(RED, text, END)
 
 
-def write_bold(text):
+def get_text_bold(text):
     return '{}{}{}'.format(BOLD, text, END)
 
 
-def get_initials(assignee):
+def get_ticket_number(issue):
+    number = str(issue['iid'])[-4:]
+    return f"{number} "
+
+
+def get_assignee(issue):
     try:
-        names = assignee.upper().split('.')
-        if len(names) > 1:
-            initials = names[0][0] + names[1][0]
-            return initials
-        return names[0][0] + names[0][1]
-    except Exception as e:
-        return '  '
-
-
-def get_ticket_number(raw_line):
-    ticket_number = re.search('^<:id>≤≤([^≥]*)≥≥', raw_line).group(1)
-    if len(ticket_number) < 5:
-        no_spaces = 5 - len(ticket_number) + 1
-        ticket_number = ticket_number + (' ' * no_spaces)
-    return ticket_number
-
-
-def get_ticket_type(raw_line):
-    ticket_type = re.search('<:labels>≤≤([^≥]*)≥≥', raw_line).group(1)
-
-    if 'Feature' in ticket_type:
-        return '🚀'
-    if ticket_type == 'Bug':
-        return '🐛'
-    if ticket_type == 'Tech improvement':
-        return '🤖'
-    if ticket_type == 'Requirement work':
-        return '📝'
-    if ticket_type == 'Improvement':
-        return '🎨'
-    if ticket_type == 'Tech support task':
-        return '🔧'
-    if ticket_type == 'Sub-task':
-        return '🍕'
-    return '🤔'
-
-
-def get_assignee(raw_line):
-    assignee = re.search('<:assignee>≤≤([^≥]*)≥≥', raw_line).group(1)
-    if assignee == 'unassigned':
-        return '    '
-    initials = '({})'.format(get_initials(assignee))
-    return initials
-
-
-def get_description(raw_line):
-    return re.search('<:title>≤≤([^≥]*)≥≥', raw_line).group(1)
-
-
-def get_line(from_list, line_no, icw):
-    try:
-        raw_line = from_list[line_no]
-        if raw_line == '':
-            return ' ' * icw
-        ticket_number = get_ticket_number(raw_line)
-        ticket_type = get_ticket_type(raw_line)
-        assignee = get_assignee(raw_line)
-        description = get_description(raw_line)
-        description_size = icw - 6 - 5 - 3  # Ticket number 6 char, assignee 4 + 1 space, 2 + 1 space  ticket type
-        if description_size <= 0:
-            return 'Terminal too small!!!'
-        output = '{ticket_number}{ticket_type} {assignee} {description:{w}.{w}}'.format(
-                ticket_type=ticket_type,
-                ticket_number=write_bold(ticket_number),
-                assignee=write_red(assignee),
-                description=description,
-                w=description_size)
-        return output
+        assignee = issue['assignees'][0]
+        name = assignee['name']
+        initials = name[:2].upper()
+        return f"({initials}) "
     except IndexError:
-        return ' ' * icw
+        return ' ' * 5
 
 
-def print_headers(icw, separator, total_width):
-    print(
-        '{ready_for_dev:^{w}.{w}}{separator}'
-        '{coding:^{w}.{w}}'
-        .format(
-            ready_for_dev=write_bold('Ready for dev'),
-            coding=write_bold('In progress'),
-            separator=separator,
-            w=(icw + len(BOLD) + len(END))
-        ))
-    print('-' * total_width)
+def get_issue_type(issue):
+    labels = issue['labels']
+    for (label, emoji) in label_map.items():
+        if label in labels:
+            return emoji
+    return default_unknown_label_emoji
+
+
+def demux_issues(issues, columns):
+    issues_lists = []
+    for column in columns:
+        issues_lists.append(
+            [issue for issue in issues if column in issue['labels']]
+        )
+    return issues_lists
+
+
+def get_rows(issues, columns, icw, separator):
+    issues_lists = demux_issues(issues, columns)
+    no_rows = len(max(issues_lists, key=len))
+    rows = []
+    for i in range(0, no_rows):
+        row = ''
+        for j, column in enumerate(columns):
+            sep = separator if column != columns[-1] else ''
+            try:
+                issue = issues_lists[j][i]
+                title = issue['title']
+                number = get_ticket_number(issue)
+                assignee = get_assignee(issue)
+                issue_type = f"{get_issue_type(issue)} "
+                title_size = \
+                    icw - len(number) - len(assignee) - len(issue_type) - 1
+                if title_size <= 0:
+                    return 'TERMINAL TOO SMALL'
+                number_b = get_text_bold(number)
+                assignee_r = get_text_red(assignee)
+                row += f"{number_b}{assignee_r}{issue_type}" + \
+                    f"{title:{title_size}.{title_size}}{sep}"
+            except IndexError:
+                row += f"{' ' * icw}{sep}"
+        rows.append(row)
+    return rows
+
+
+def get_header_row(columns, icw, separator):
+    header_row = ''
+    for column in columns:
+        size = icw + len(BOLD) + len(END)
+        bold_column = get_text_bold(column[:icw].upper())
+        sep = separator if column != columns[-1] else ''
+        header_row += f"{bold_column:^{size}.{size}}{sep}"
+    return header_row
 
 
 def main():
-    ready_for_dev = os.getenv('READY').split('\n')
-    progress = os.getenv('PROGRESS').split('\n')
-    ready_for_dev.reverse()
-    progress.reverse()
-
-    no_rows = max(
-        len(ready_for_dev),
-        len(progress),
-    )
-
+    columns = json.loads(os.getenv('LISTS'))
+    issues = json.loads(os.getenv('ISSUES'))
     terminal_width = int(os.getenv('WIDTH'))
-    separator = ' | '
-    width_without_separators = terminal_width - 1 * len(separator)
-    icw = math.floor(width_without_separators / 2)  # individual column width
 
-    print_headers(icw, separator, terminal_width)
-    for i in range(0, no_rows):
-        print(
-            '{ready_for_dev}{separator}'
-            '{coding}'.format(
-                ready_for_dev=get_line(ready_for_dev, i, icw),
-                coding=get_line(progress, i, icw),
-                separator=separator,
-            ))
+    issues.reverse()
+
+    separator = ' | '
+    separators_size = (len(columns) - 1) * len(separator)
+    width_without_separators = terminal_width - separators_size
+    # individual column width
+    icw = math.floor(width_without_separators / len(columns))
+
+    header_row = get_header_row(columns, icw, separator)
+    rows = get_rows(issues, columns, icw, separator)
+
+    print('‾' * terminal_width)
+    print(header_row)
+    print('_' * terminal_width)
+
+    for row in rows:
+        print(row)
 
 
 if __name__ == '__main__':

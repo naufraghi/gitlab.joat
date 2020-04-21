@@ -1,6 +1,0 @@
-{% if response is iterable -%}
-{%- for issue in response -%}
-{%- set assignee= issue.assignees | first -%}
-<:id>≤≤{{issue.iid}}≥≥ <:title>≤≤{{issue.title}}≥≥ <:assignee>≤≤{%- if assignee -%}{{assignee.name}}{%- else -%}unassigned{%- endif -%}≥≥ <:labels>≤≤{{issue.labels}}≥≥
-{% endfor -%}
-{%- endif -%}

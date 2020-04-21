@@ -42,6 +42,7 @@ subcommands:
         query_params:
             labels: "{{args.labels}}"
             milestone: "{{args.milestone}}"
+            state: "{{args.state}}"
         args:
             - labels:
                 short: l
@@ -52,6 +53,11 @@ subcommands:
                 short: m
                 long: milestone
                 help: filter by milestone name
+                takes_value: true
+            - state:
+                short: s
+                long: state
+                help: filter by state (use opened and closed as values)
                 takes_value: true
         response_template: list.j2
 
@@ -85,9 +91,18 @@ subcommands:
                 takes_value: true
         body:
             title: "{{ args.TITLE }}"
-            description: "{%- if args.DESCRIPTION -%}{{args.DESCRIPTION}}{%- endif -%}"
-            labels: "{%- if args.LABELS -%}{{args.LABELS}}{%- endif -%}"
+            description: "{%- if args.DESCRIPTION is defined -%}{{args.DESCRIPTION}}{%- endif -%}"
+            labels: "{%- if args.LABELS is defined -%}{{args.LABELS}}{%- endif -%}"
         response_template: issue.j2
+
+    - delete:
+        about: Delete an issue
+        path: /projects/{{env.GITLAB_PROJECT_ID}}/issues/{{args.ISSUE_IID}}
+        method: DELETE
+        args:
+            - ISSUE_IID:
+                help: Issue iid
+                required: true
 
     - edit:
         about: Edit an issue
@@ -185,7 +200,7 @@ subcommands:
             - TITLE:
                 help: Issue title
                 required: true
-            - DESCRIPTION:
+            - description:
                 short: d
                 long: description
                 help: Issue description
@@ -281,9 +296,16 @@ subcommands:
 
     - board:
         about: Print board
+        args:
+            - board_no:
+                help: board number (default 0)
+                short: b
+                long: board_no
+                takes_value: true
         script: |
-            export READY=$(gitlab issues -l "workflow:Ready for development" -t list_for_board.j2)
-            export PROGRESS=$(gitlab issues -l "workflow:In progress" -t list_for_board.j2)
+            BOARD_INDEX="{%- if board_no is defined -%}board_no{%- else -%}0{%- endif -%}"
+            export LISTS=$(gitlab boards | jq -r ".[${BOARD_INDEX}].lists | map(.label.name)")
+            export ISSUES=$(gitlab issues -R -s opened)
             export WIDTH=$(tput cols)
             python {{scmd.scmd_config_base_path}}/templates/print_board.py
 
